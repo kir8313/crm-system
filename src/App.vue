@@ -1,10 +1,21 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/about">About</router-link>
-  </nav>
-  <router-view/>
+  <component :is="page ">
+    <router-view/>
+  </component>
 </template>
+
+<script>
+import MainLayout from "@/layout/MainLayout";
+import AuthLayout from "@/layout/AuthLayout";
+export default {
+  components: {AuthLayout, MainLayout},
+  computed: {
+    page() {
+      return (this.$route.meta.page || 'login') + '-layout';
+    }
+  }
+}
+</script>
 
 <style lang="scss">
 #app {

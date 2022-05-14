@@ -59,14 +59,12 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to, from) => {
   const isAuth = to.matched.some(rout => rout.meta.auth)
 
   onAuthStateChanged(authFirebase, (user) => {
     if (!user && isAuth && !localStorage.getItem('token')) {
-      next('/login?message=login')
-    } else {
-      next()
+      router.push('/login?message=login')
     }
   });
 })

@@ -3,23 +3,25 @@
     <div class="page-title">
       <h3>История записей</h3>
     </div>
-
-    <div class="history-chart">
-      <div style="width: 400px; margin: 0 auto;">
-        <DoughnutChart v-bind="doughnutChartProps" />
-      </div>
-    </div>
-
     <loader v-if="isLoading"/>
 
-    <p v-else-if="!amounts.length" class="center">
-      Категорий пока нет.
-      <router-link to="/categories">Добавьте новую категорию</router-link>
+    <p v-else-if="!amounts" class="center">
+      Записей пока нет.
+      <router-link to="/record">Добавьте новую запись</router-link>
     </p>
 
     <section v-else>
+      <div
+        v-show="isShowChart"
+        class="history-chart">
+        <div style="width: 400px; margin: 0 auto;">
+          <DoughnutChart v-bind="doughnutChartProps" />
+        </div>
+      </div>
+
+
       <history-table :amounts="items"/>
-      <Paginate
+      <Paginate v-if="pageCount > 1"
         v-model="page"
         :page-count="pageCount"
         :click-handler="onChangePage"
@@ -42,8 +44,7 @@ import Loader from "@/components/Loader";
 import Paginate from "vuejs-paginate-next";
 import pagination from "@/mixins/pagination";
 import { DoughnutChart, useDoughnutChart } from "vue-chart-3";
-import { Chart, ChartData, ChartOptions, registerables } from "chart.js";
-import {shuffle} from "lodash";
+import { Chart, registerables } from "chart.js";
 
 Chart.register(...registerables);
 export default {
@@ -52,11 +53,12 @@ export default {
   data: () => ({
     isLoading: true,
     amounts: [],
-    // dataValues: [],
+    dataValues: [],
     dataLabels: [],
     toggleLegend: true,
-    index: 1,
+    index: 0,
     doughnutChartProps: null,
+
   }),
   computed: {
     ...mapGetters(['categories']),
@@ -99,9 +101,9 @@ export default {
         },
       }
     },
-    switchLegend() {
-      this.toggleLegend = !this.toggleLegend;
-    },
+    isShowChart() {
+      return this.dataValues.filter(item => item > 0).length
+    }
   },
   methods: {
     init() {
@@ -113,11 +115,6 @@ export default {
           typeText: amount.typeMoney === 'income' ? 'Доход' : 'Расход',
         }
       }))
-    },
-    shuffleData() {
-      this.dataValues = shuffle(this.dataValues);
-      this.dataValues.push(this.index);
-      this.index++;
     },
 
     sumEveryCategory() {
@@ -134,21 +131,18 @@ export default {
   async mounted() {
     await this.$store.dispatch('getCategories');
     this.amounts = await this.$store.dispatch('getAmounts');
-    this.dataLabels = this.categories.map(c => c.title)
-
-    this.sumEveryCategory();
-
-    if (this.amounts) {
+    if (this.amounts ) {
+      this.dataLabels = this.categories.map(c => c.title)
+      this.sumEveryCategory();
       this.init();
+
+      const { doughnutChartProps } = useDoughnutChart({
+        chartData: this.testData,
+        options: this.options,
+      });
+
+      this.doughnutChartProps = doughnutChartProps;
     }
-
-    const { doughnutChartProps, doughnutChartRef } = useDoughnutChart({
-      chartData: this.testData,
-      options: this.options,
-    });
-
-    this.doughnutChartProps = doughnutChartProps;
-    this.shuffleData(doughnutChartRef)
 
     this.isLoading = false;
   },

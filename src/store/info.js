@@ -28,7 +28,7 @@ export default {
     },
     clearInfo(state) {
       state.info = {};
-      localStorage.removeItem('token')
+      localStorage.clear()
     }
   },
   getters: {

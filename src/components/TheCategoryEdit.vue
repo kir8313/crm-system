@@ -58,6 +58,7 @@
 <script>
 import useVuelidate from "@vuelidate/core";
 import {minLength, minValue, required} from "@vuelidate/validators";
+import {mapGetters} from "vuex";
 
 export default {
   props: ['categories'],
@@ -89,6 +90,10 @@ export default {
         return this.v$.$touch();
       }
       try {
+        const {limit, title} = this.categories.find(item => item.id === this.activeOption);
+        if (this.title === title && this.limit === limit) {
+          return this.$alert('Имя и лимит у категории не могут быть одинаковыми!')
+        }
         await this.$store.dispatch('changeCategory', {
           title: this.title,
           limit: this.limit,
